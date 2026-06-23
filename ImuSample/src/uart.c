@@ -49,8 +49,25 @@ void InitUart() {
 		return;
 	}
 
+    struct uart_config config;
+    int ret = uart_config_get(uart_dev, &config);
+    if (ret != 0) {
+        // Handle error reading config
+        return;
+    }
+
+    // 3. Update only the baudrate to your desired speed
+    config.baudrate = 921600; 
+
+    // 4. Apply the new configuration
+    ret = uart_configure(uart_dev, &config);
+    if (ret != 0) {
+        // Handle error applying config (e.g., hardware doesn't support that exact speed)
+        return;
+    }
+
 	/* configure interrupt and callback to receive data */
-	int ret = uart_irq_callback_user_data_set(uart_dev, serial_cb, NULL);
+	ret = uart_irq_callback_user_data_set(uart_dev, serial_cb, NULL);
 
 	if (ret < 0) {
 		if (ret == -ENOTSUP) {
