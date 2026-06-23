@@ -8,7 +8,18 @@
 /* change this to any other UART peripheral if desired */
 #define UART_DEVICE_NODE DT_CHOSEN(zephyr_shell_uart)
 
+#define MSG_SIZE 32 // TODO
+#define NUM_MSG 10
+#define ALIGN 4
+
+/* queue to store up to 10 messages (aligned to 4-byte boundary) */
+K_MSGQ_DEFINE(uart_msgq, MSG_SIZE, NUM_MSG, ALIGN);
+
 static const struct device *const uart_dev = DEVICE_DT_GET(UART_DEVICE_NODE);
+
+/* receive buffer used in UART ISR callback */
+static char rx_buf[MSG_SIZE];
+static int rx_buf_pos;
 
 /*
  * Read characters from UART until line end is detected. Afterwards push the
@@ -31,19 +42,6 @@ void serial_cb(const struct device *dev, void *user_data)
         uart_poll_out(uart_dev, c);
 	}
 }
-
-/*
- * Print a null-terminated string character by character to the UART interface
- */
-void print_uart(char *buf)
-{
-	int msg_len = strlen(buf);
-
-	for (int i = 0; i < msg_len; i++) {
-		uart_poll_out(uart_dev, buf[i]);
-	}
-}
-
 
 void InitUart() {
     if (!device_is_ready(uart_dev)) {
@@ -72,7 +70,8 @@ void putChar(char c) {
 }
 
 void putStrn(char* str, uint8_t len) {
-    for (int i = 0; i < len; i++) {
-		uart_poll_out(uart_dev, str[i]);
-	}
+    for(uint8_t i = 0; i < len; i++) {
+        uart_poll_out(uart_dev, str[i]);
+    }
+    // TODO move to k_msgq_put(&uart_msgq, &rx_buf, K_NO_WAIT);
 }
