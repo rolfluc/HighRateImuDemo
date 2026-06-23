@@ -6,6 +6,7 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(ImuSample)
 
 target_sources(app PRIVATE src/main.c)
+target_sources(app PRIVATE "src/imu.c")
 
 # BEGIN AUTO-ADDED BY MCUXPRESSO EXTENSION
 target_sources(app PRIVATE "src/uart.c")

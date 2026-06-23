@@ -63,6 +63,7 @@ void InitUart() {
 		return;
 	}
 	uart_irq_rx_enable(uart_dev);
+    // TODO migrate rx to TX for IRQ management. Won't need RX.
 }
 
 void putChar(char c) {
@@ -73,5 +74,6 @@ void putStrn(char* str, uint8_t len) {
     for(uint8_t i = 0; i < len; i++) {
         uart_poll_out(uart_dev, str[i]);
     }
+    // TODO move to IRQ based, for IMU integration.
     // TODO move to k_msgq_put(&uart_msgq, &rx_buf, K_NO_WAIT);
 }
