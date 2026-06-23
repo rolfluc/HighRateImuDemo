@@ -1,0 +1,21 @@
+{
+  "version": 7,
+  "cmakeMinimumRequired": {
+    "major": 3
+  },
+  "configurePresets": [
+    {
+      "name": "build-env",
+      "displayName": "build-env",
+      "hidden": true,
+      "environment": {
+        "ZEPHYR_BASE": "c:/Users/rolf0/Documents/nxp/nxp_zephyr/zephyr",
+        "MCUX_VENV_PATH": "C:/Users/rolf0/.mcuxpressotools/.mcux-venv-3.12/Scripts",
+        "ZEPHYR_SDK_INSTALL_DIR": "C:/Users/rolf0/zephyr-sdk-1.0.1/gnu/arm-zephyr-eabi/../",
+        "PATH": "$env{MCUX_VENV_PATH}${pathListSep}$penv{PATH}"
+      },
+      "cacheVariables": {}
+    }
+  ],
+  "buildPresets": []
+}
