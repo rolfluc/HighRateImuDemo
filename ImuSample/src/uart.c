@@ -1,14 +1,78 @@
 #include "uart.h"
+#include <zephyr/kernel.h>
+#include <zephyr/device.h>
+#include <zephyr/drivers/uart.h>
+
+#include <string.h>
+
+/* change this to any other UART peripheral if desired */
+#define UART_DEVICE_NODE DT_CHOSEN(zephyr_shell_uart)
+
+static const struct device *const uart_dev = DEVICE_DT_GET(UART_DEVICE_NODE);
+
+/*
+ * Read characters from UART until line end is detected. Afterwards push the
+ * data to the message queue.
+ */
+void serial_cb(const struct device *dev, void *user_data)
+{
+	uint8_t c;
+
+	if (!uart_irq_update(uart_dev)) {
+		return;
+	}
+
+	if (!uart_irq_rx_ready(uart_dev)) {
+		return;
+	}
+
+	/* read until FIFO empty */
+	while (uart_fifo_read(uart_dev, &c, 1) == 1) {
+        uart_poll_out(uart_dev, c);
+	}
+}
+
+/*
+ * Print a null-terminated string character by character to the UART interface
+ */
+void print_uart(char *buf)
+{
+	int msg_len = strlen(buf);
+
+	for (int i = 0; i < msg_len; i++) {
+		uart_poll_out(uart_dev, buf[i]);
+	}
+}
 
 
 void InitUart() {
+    if (!device_is_ready(uart_dev)) {
+		printk("UART device not found!");
+		return;
+	}
 
+	/* configure interrupt and callback to receive data */
+	int ret = uart_irq_callback_user_data_set(uart_dev, serial_cb, NULL);
+
+	if (ret < 0) {
+		if (ret == -ENOTSUP) {
+			printk("Interrupt-driven UART API support not enabled\n");
+		} else if (ret == -ENOSYS) {
+			printk("UART device does not support interrupt-driven API\n");
+		} else {
+			printk("Error setting UART callback: %d\n", ret);
+		}
+		return;
+	}
+	uart_irq_rx_enable(uart_dev);
 }
 
 void putChar(char c) {
-
+    uart_poll_out(uart_dev, c);
 }
 
 void putStrn(char* str, uint8_t len) {
-
+    for (int i = 0; i < len; i++) {
+		uart_poll_out(uart_dev, str[i]);
+	}
 }
