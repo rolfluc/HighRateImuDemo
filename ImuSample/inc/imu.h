@@ -1,4 +1,6 @@
 #pragma once
+#define LSM6_REG_CTRL1 0x10
+
 #define LSM6_REG_PAGE_SEL 0x02
 #define LSM6_REG_EMB_FUNC_EN_A 0x04
 #define LSM6_REG_EMB_FUNC_EN_B 0x05
@@ -55,3 +57,5 @@
 #define LSM6_REG_SPI2_CTRL1_OIS 0x70
 #define LSM6_REG_SPI2_CTRL2_OIS 0x71
 #define LSM6_REG_SPI2_CTRL3_OIS 0x72
+
+#define LSM6_READ 1 << 7
