@@ -12,7 +12,7 @@
 int main(void)
 {
 	InitUart();
-	printk("%x",sys_clock_hw_cycles_per_sec());
+	// printk("%x",sys_clock_hw_cycles_per_sec());
 	InitSpi();
 	while(1) {
 
