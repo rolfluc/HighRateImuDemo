@@ -3,8 +3,9 @@
 #include <zephyr/device.h>
 #include <zephyr/drivers/spi.h>
 #include "imu.h"
+#include "uart.h"
 
-#define SPI_RATE 2 * 1000 * 1000 // 4 Mhz
+#define SPI_RATE 8 * 1000 * 1000 // 8 Mhz
 #define SPI_DEVICE_NODE DT_NODELABEL(lpspi1)
 static const struct device *spi_dev;
 
@@ -27,7 +28,6 @@ void InitSpi() {
         return;
     }
 
-    // TODO Incredibly tightly coupled. Just run it for now.
     // Write bit is bit 0. Setting to 1 indicates read.
     uint8_t tx_data[2] = {LSM6_REG_SPI2_WHO_AM_I | LSM6_READ, 0x00};
     uint8_t rx_data[2] = {0};
@@ -44,19 +44,46 @@ void InitSpi() {
     }
     // write to CTRL1 (0x10) to activate accelerometer
     tx_data[0] = LSM6_REG_CTRL1; // write mode
-    tx_data[1] = 0b00001100; // High per mode, 7.68 khz
-    ret = spi_transceive(spi_dev, &spi_cfg, &tx_set, &rx_set);
+    tx_data[1] = 0x80; // High per mode, 7.68 khz
+    ret =  spi_write(spi_dev, &spi_cfg, &tx_set);
     if (ret == 0) {
         printk("SPI transfer successful\n");
     } else {
         printk("SPI transfer failed: %d\n", ret);
     }
-    uint8_t tx_data1[3] = {LSM6_REG_SPI2_OUTX_L_G_OIS | LSM6_READ, 0x00};
-    uint8_t rx_data1[3] = {0};
-    struct spi_buf tx_buf1 = {.buf = tx_data, .len = sizeof(tx_data1)};
-    struct spi_buf rx_buf1 = {.buf = rx_data, .len = sizeof(rx_data1)};
+
+
+    #if 0
+    uint8_t tx_dataPoll[2] = {0x9E,0x00};
+    uint8_t rx_dataPoll[2] = {0,0};
+    struct spi_buf tx_bufPoll = {.buf = tx_dataPoll, .len = sizeof(tx_data)};
+    struct spi_buf rx_bufPoll = {.buf = rx_dataPoll, .len = sizeof(rx_data)};
+    struct spi_buf_set tx_setPoll = {.buffers = &tx_bufPoll, .count = 1};
+    struct spi_buf_set rx_setPoll = {.buffers = &rx_bufPoll, .count = 1};
+    #endif
+
+    uint8_t tx_data1[7] = {0xA8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    uint8_t rx_data1[7] = {0};
+    uint16_t accel_x,accel_y,accel_z = 0;
+    struct spi_buf tx_buf1 = {.buf = tx_data1, .len = sizeof(tx_data1)};
+    struct spi_buf rx_buf1 = {.buf = rx_data1, .len = sizeof(rx_data1)};
     struct spi_buf_set tx_set1 = {.buffers = &tx_buf1, .count = 1};
     struct spi_buf_set rx_set1 = {.buffers = &rx_buf1, .count = 1};
-    ret = spi_transceive(spi_dev, &spi_cfg, &tx_set1, &rx_set1);
+    uint32_t cycleVal = 0;
+    //char buffer[18];
+    char buffer[6];
+    while(1) {
+        cycleVal = k_cycle_get_32();
+
+        // Now that we're ready, read it and report it out.
+        ret = spi_transceive(spi_dev, &spi_cfg, &tx_set1, &rx_set1);
+        accel_x = (uint16_t)((rx_data1[1] << 8) | rx_data1[0]);
+        accel_y = (uint16_t)((rx_data1[3] << 8) | rx_data1[2]);
+        accel_z = (uint16_t)((rx_data1[5] << 8) | rx_data1[4]);
+
+        //snprintf(buffer, sizeof(buffer), "%03X%04X%04X%04X\r\n", cycleVal & 0x00000fff, accel_x, accel_y, accel_z);
+        snprintf(buffer, sizeof(buffer), "%03X\r\n", cycleVal & 0x00000fff);
+        putStrn(buffer, sizeof(buffer));
+    }
 }
 

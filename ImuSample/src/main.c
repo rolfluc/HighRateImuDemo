@@ -6,12 +6,13 @@
 
 #include "uart.h"
 #include "spi.h"
-
+#include <zephyr/kernel.h>
 
 
 int main(void)
 {
 	InitUart();
+	printk("%x",sys_clock_hw_cycles_per_sec());
 	InitSpi();
 	while(1) {
 

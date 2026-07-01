@@ -66,6 +66,7 @@ void InitUart() {
         return;
     }
 
+	#if 0
 	/* configure interrupt and callback to receive data */
 	ret = uart_irq_callback_user_data_set(uart_dev, serial_cb, NULL);
 
@@ -81,6 +82,7 @@ void InitUart() {
 	}
 	uart_irq_rx_enable(uart_dev);
     // TODO migrate rx to TX for IRQ management. Won't need RX.
+	#endif
 }
 
 void putChar(char c) {
