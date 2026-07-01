@@ -57,7 +57,7 @@ void InitUart() {
     }
 
     // 3. Update only the baudrate to your desired speed
-    config.baudrate = 921600; 
+    config.baudrate = 1228800; 
 
     // 4. Apply the new configuration
     ret = uart_configure(uart_dev, &config);

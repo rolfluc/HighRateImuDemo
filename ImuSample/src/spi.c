@@ -70,8 +70,7 @@ void InitSpi() {
     struct spi_buf_set tx_set1 = {.buffers = &tx_buf1, .count = 1};
     struct spi_buf_set rx_set1 = {.buffers = &rx_buf1, .count = 1};
     uint32_t cycleVal = 0;
-    //char buffer[18];
-    char buffer[6];
+    char buffer[18];
     while(1) {
         cycleVal = k_cycle_get_32();
 
@@ -81,8 +80,8 @@ void InitSpi() {
         accel_y = (uint16_t)((rx_data1[3] << 8) | rx_data1[2]);
         accel_z = (uint16_t)((rx_data1[5] << 8) | rx_data1[4]);
 
-        //snprintf(buffer, sizeof(buffer), "%03X%04X%04X%04X\r\n", cycleVal & 0x00000fff, accel_x, accel_y, accel_z);
-        snprintf(buffer, sizeof(buffer), "%03X\r\n", cycleVal & 0x00000fff);
+        snprintf(buffer, sizeof(buffer), "%03X%04X%04X%04X\r\n", cycleVal & 0x00000fff, accel_x, accel_y, accel_z);
+        //snprintf(buffer, sizeof(buffer), "%03X\r\n", cycleVal & 0x00000fff);
         putStrn(buffer, sizeof(buffer));
     }
 }
