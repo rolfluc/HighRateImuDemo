@@ -1,0 +1,11 @@
+/ {
+    /* Using a standard compatible string gives Zephyr the parsing blueprint */
+    my_gpio_pins {
+        compatible = "gpio-leds";
+
+        my_output_pin: gpio_pin_2_5 {
+            gpios = <&gpio2 5 GPIO_ACTIVE_HIGH>;
+            label = "USER_GPIO_P2_5";
+        };
+    };
+};
