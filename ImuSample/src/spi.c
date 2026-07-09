@@ -73,7 +73,7 @@ void InitSpi() {
     }
 
     // Write bit is bit 0. Setting to 1 indicates read.
-    uint8_t tx_whoami[2] = {LSM6_REG_SPI2_WHO_AM_I | LSM6_READ, 0x00};
+    uint8_t tx_whoami[2] = {0x8f, 0x00};
     uint8_t rx_whoami[2] = {0};
     struct spi_buf buf_tx_whoami = {.buf = tx_whoami, .len = sizeof(tx_whoami)};
     struct spi_buf buf_rx_whoami = {.buf = rx_whoami, .len = sizeof(rx_whoami)};
@@ -84,10 +84,10 @@ void InitSpi() {
     if (ret != 0) {
         printk("SPI Failed WHOAMI\n");
     }
-    if (rx_whoami[1] != 0x70) {
+    if (rx_whoami[1] != 0x6b) {
         printk("SPI Failed WHOAMI - invalid data\n");
     }
-    uint8_t tx_ctrl[2] = {LSM6_REG_CTRL1, 0x0C}; 
+    uint8_t tx_ctrl[2] = {0x10, 0x28}; 
     struct spi_buf buf_tx_ctrl = {.buf = tx_ctrl, .len = sizeof(tx_ctrl)};
     struct spi_buf_set set_tx_ctrl = {.buffers = &buf_tx_ctrl, .count = 1};
     ret = spi_write(spi_dev, &spi_cfg, &set_tx_ctrl);
@@ -96,7 +96,7 @@ void InitSpi() {
     }
 
     // --- ADD THIS READ-BACK TEST HERE ---
-    uint8_t tx_verify[2] = { LSM6_REG_CTRL1 | 0x80, 0x00 }; // 0x90 (Read CTRL1)
+    uint8_t tx_verify[2] = { 0x10 | 0x80, 0x00 }; // 0x90 (Read CTRL1)
     uint8_t rx_verify[2] = { 0 };
     struct spi_buf buf_verify_tx = {.buf = tx_verify, .len = 2};
     struct spi_buf buf_verify_rx = {.buf = rx_verify, .len = 2};
@@ -104,7 +104,7 @@ void InitSpi() {
     struct spi_buf_set set_verify_rx = {.buffers = &buf_verify_rx, .count = 1};
 
     spi_transceive(spi_dev, &spi_cfg, &set_verify_tx, &set_verify_rx);
-    if (rx_verify[1] != 0x0C) {
+    if (rx_verify[1] != 0x28) {
         printk("SPI Failed WHOAMI - invalid data\n");
     }
 
