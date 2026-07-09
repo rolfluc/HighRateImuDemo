@@ -6,7 +6,7 @@
 #include "imu.h"
 #include "uart.h"
 
-#define SPI_RATE 8 * 1000 * 1000 // 8 Mhz
+#define SPI_RATE 1 * 1000 * 1000 // 8 Mhz
 #define SPI_DEVICE_NODE DT_NODELABEL(lpspi1)
 static const struct device *spi_dev;
 
@@ -24,7 +24,7 @@ static const struct spi_cs_control my_custom_cs = {
         .dt_flags = GPIO_ACTIVE_LOW, /* Keep it active low for standard SPI */
     },
     /* Option A: Using Nanoseconds explicitly */
-    .setup_ns = 1000,  /* 2 us leading setup delay before the first clock edge */
+    .setup_ns = 2000,  /* 2 us leading setup delay before the first clock edge */
     .hold_ns = 500,    /* 500 ns trailing hold delay after the last clock edge */
     
     /* Option B: Legacy microsecond approach (uncomment if your Zephyr target prefers it) */
@@ -44,7 +44,7 @@ static const struct spi_config spi_cfg = {
 #else
     .cs = NULL,
 #endif
-    .word_delay = 1000,
+    .word_delay = 0,
 };
 
 static const struct gpio_dt_spec custom_pin = GPIO_DT_SPEC_GET(DT_NODELABEL(my_output_pin), gpios);
@@ -87,7 +87,7 @@ void InitSpi() {
     if (rx_whoami[1] != 0x6b) {
         printk("SPI Failed WHOAMI - invalid data\n");
     }
-    uint8_t tx_ctrl[2] = {0x10, 0x28}; 
+    uint8_t tx_ctrl[2] = {0x10, 0xA0}; 
     struct spi_buf buf_tx_ctrl = {.buf = tx_ctrl, .len = sizeof(tx_ctrl)};
     struct spi_buf_set set_tx_ctrl = {.buffers = &buf_tx_ctrl, .count = 1};
     ret = spi_write(spi_dev, &spi_cfg, &set_tx_ctrl);
@@ -96,7 +96,7 @@ void InitSpi() {
     }
 
     // --- ADD THIS READ-BACK TEST HERE ---
-    uint8_t tx_verify[2] = { 0x10 | 0x80, 0x00 }; // 0x90 (Read CTRL1)
+    uint8_t tx_verify[2] = { 0x90, 0x00 }; // 0x90 (Read CTRL1)
     uint8_t rx_verify[2] = { 0 };
     struct spi_buf buf_verify_tx = {.buf = tx_verify, .len = 2};
     struct spi_buf buf_verify_rx = {.buf = rx_verify, .len = 2};
@@ -126,6 +126,7 @@ void InitSpi() {
 
         snprintf(buffer, sizeof(buffer), "%04X%04X%04X\n", accel_x, accel_y, accel_z);
         putStrn(buffer, sizeof(buffer));
+        k_usleep(100);
     }
 }
 
